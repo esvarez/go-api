@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -28,12 +30,14 @@ func (b *BoardGameHandler) findBoardGameByID() http.Handler {
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params[boardGameID])
 		if err != nil {
+			log.Printf("error gettin board game id: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Internal server error"))
 			return
 		}
-		bg, err := b.BoardGameService.FinByID(id)
+		bg, err := b.BoardGameService.FindByID(id)
 		if err != nil {
+			log.Printf("error getting boardgame: %v", err)
 			switch {
 			case errors.Is(err, errs.ErrNotFound):
 				w.WriteHeader(http.StatusNotFound)
@@ -45,10 +49,15 @@ func (b *BoardGameHandler) findBoardGameByID() http.Handler {
 			return
 		}
 
-		fmt.Sprintf("%#v", bg)
-
+		response, err := json.Marshal(bg)
+		if err != nil {
+			log.Printf("error marshalling boardgame: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("found"))
+		w.Write(response)
 	})
 }
 

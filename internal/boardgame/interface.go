@@ -9,5 +9,5 @@ type Repository interface {
 }
 
 type UseCase interface {
-	FinByID(id int) (BoardGame, error)
+	FindByID(id int) (*BoardGame, error)
 }
